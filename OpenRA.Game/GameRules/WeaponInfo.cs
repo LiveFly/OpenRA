@@ -24,8 +24,8 @@ namespace OpenRA.GameRules
 		public int[] DamageModifiers;
 		public int[] InaccuracyModifiers;
 		public int[] RangeModifiers;
-		public int Facing;
-		public Func<int> CurrentMuzzleFacing;
+		public WAngle Facing;
+		public Func<WAngle> CurrentMuzzleFacing;
 		public WPos Source;
 		public Func<WPos> CurrentSource;
 		public Actor SourceActor;
@@ -48,6 +48,16 @@ namespace OpenRA.GameRules
 			Source = args.Source;
 			SourceActor = args.SourceActor;
 			WeaponTarget = args.GuidedTarget;
+		}
+
+		// For places that only want to update some of the fields (usually DamageModifiers)
+		public WarheadArgs(WarheadArgs args)
+		{
+			Weapon = args.Weapon;
+			DamageModifiers = args.DamageModifiers;
+			Source = args.Source;
+			SourceActor = args.SourceActor;
+			WeaponTarget = args.WeaponTarget;
 		}
 
 		// Default empty constructor for callers that want to initialize fields themselves

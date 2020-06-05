@@ -49,7 +49,7 @@ namespace OpenRA.Traits
 	/// </summary>
 	public sealed class DamageType { DamageType() { } }
 
-	public interface IHealthInfo : ITraitInfo
+	public interface IHealthInfo : ITraitInfoInterface
 	{
 		int MaxHP { get; }
 	}
@@ -324,9 +324,17 @@ namespace OpenRA.Traits
 	public interface IFacingInfo : ITraitInfoInterface { int GetInitialFacing(); }
 
 	public interface ITraitInfoInterface { }
-	public interface ITraitInfo : ITraitInfoInterface { object Create(ActorInitializer init); }
 
-	public class TraitInfo<T> : ITraitInfo where T : new() { public virtual object Create(ActorInitializer init) { return new T(); } }
+	public abstract class TraitInfo : ITraitInfoInterface
+	{
+		public abstract object Create(ActorInitializer init);
+	}
+
+	public class TraitInfo<T> : TraitInfo where T : new()
+	{
+		public override object Create(ActorInitializer init) { return new T(); }
+	}
+
 	public interface ILobbyCustomRulesIgnore { }
 
 	[SuppressMessage("StyleCop.CSharp.NamingRules", "SA1302:InterfaceNamesMustBeginWithI", Justification = "Not a real interface, but more like a tag.")]
@@ -539,4 +547,24 @@ namespace OpenRA.Traits
 
 	[RequireExplicitImplementation]
 	public interface ICreationActivity { Activity GetCreationActivity(); }
+
+	[RequireExplicitImplementation]
+	public interface IObservesVariablesInfo : ITraitInfoInterface { }
+
+	public delegate void VariableObserverNotifier(Actor self, IReadOnlyDictionary<string, int> variables);
+	public struct VariableObserver
+	{
+		public VariableObserverNotifier Notifier;
+		public IEnumerable<string> Variables;
+		public VariableObserver(VariableObserverNotifier notifier, IEnumerable<string> variables)
+		{
+			Notifier = notifier;
+			Variables = variables;
+		}
+	}
+
+	public interface IObservesVariables
+	{
+		IEnumerable<VariableObserver> GetVariableObservers();
+	}
 }

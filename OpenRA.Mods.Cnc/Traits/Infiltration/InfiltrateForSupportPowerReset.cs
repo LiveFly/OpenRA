@@ -16,12 +16,20 @@ using OpenRA.Traits;
 
 namespace OpenRA.Mods.Cnc.Traits
 {
-	class InfiltrateForSupportPowerResetInfo : ITraitInfo
+	class InfiltrateForSupportPowerResetInfo : TraitInfo
 	{
 		[Desc("The `TargetTypes` from `Targetable` that are allowed to enter.")]
 		public readonly BitSet<TargetableType> Types = default(BitSet<TargetableType>);
 
-		public object Create(ActorInitializer init) { return new InfiltrateForSupportPowerReset(this); }
+		[NotificationReference("Speech")]
+		[Desc("Sound the victim will hear when technology gets stolen.")]
+		public readonly string InfiltratedNotification = null;
+
+		[NotificationReference("Speech")]
+		[Desc("Sound the perpetrator will hear after successful infiltration.")]
+		public readonly string InfiltrationNotification = null;
+
+		public override object Create(ActorInitializer init) { return new InfiltrateForSupportPowerReset(this); }
 	}
 
 	class InfiltrateForSupportPowerReset : INotifyInfiltrated
@@ -37,6 +45,12 @@ namespace OpenRA.Mods.Cnc.Traits
 		{
 			if (!info.Types.Overlaps(types))
 				return;
+
+			if (info.InfiltratedNotification != null)
+				Game.Sound.PlayNotification(self.World.Map.Rules, self.Owner, "Speech", info.InfiltratedNotification, self.Owner.Faction.InternalName);
+
+			if (info.InfiltrationNotification != null)
+				Game.Sound.PlayNotification(self.World.Map.Rules, infiltrator.Owner, "Speech", info.InfiltrationNotification, infiltrator.Owner.Faction.InternalName);
 
 			var manager = self.Owner.PlayerActor.Trait<SupportPowerManager>();
 			var powers = manager.GetPowersForActor(self).Where(sp => !sp.Disabled);

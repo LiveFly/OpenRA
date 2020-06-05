@@ -120,7 +120,7 @@ namespace OpenRA.Mods.Common.Traits
 				actor =>
 				{
 					var init = actor.Init<StanceInit>();
-					var stance = init != null ? init.Value(world) : InitialStance;
+					var stance = init != null ? init.Value : InitialStance;
 					return stances[(int)stance];
 				},
 				(actor, value) => actor.ReplaceInit(new StanceInit((UnitStance)stances.IndexOf(value))));
@@ -145,11 +145,10 @@ namespace OpenRA.Mods.Common.Traits
 		public UnitStance PredictedStance;
 
 		UnitStance stance;
-		ConditionManager conditionManager;
 		IDisableAutoTarget[] disableAutoTarget;
 		INotifyStanceChanged[] notifyStanceChanged;
 		IEnumerable<AutoTargetPriorityInfo> activeTargetPriorities;
-		int conditionToken = ConditionManager.InvalidConditionToken;
+		int conditionToken = Actor.InvalidConditionToken;
 
 		public void SetStance(Actor self, UnitStance value)
 		{
@@ -170,15 +169,12 @@ namespace OpenRA.Mods.Common.Traits
 
 		void ApplyStanceCondition(Actor self)
 		{
-			if (conditionManager == null)
-				return;
-
-			if (conditionToken != ConditionManager.InvalidConditionToken)
-				conditionToken = conditionManager.RevokeCondition(self, conditionToken);
+			if (conditionToken != Actor.InvalidConditionToken)
+				conditionToken = self.RevokeCondition(conditionToken);
 
 			string condition;
 			if (Info.ConditionByStance.TryGetValue(stance, out condition))
-				conditionToken = conditionManager.GrantCondition(self, condition);
+				conditionToken = self.GrantCondition(condition);
 		}
 
 		public AutoTarget(ActorInitializer init, AutoTargetInfo info)
@@ -187,10 +183,7 @@ namespace OpenRA.Mods.Common.Traits
 			var self = init.Self;
 			ActiveAttackBases = self.TraitsImplementing<AttackBase>().ToArray().Where(Exts.IsTraitEnabled);
 
-			if (init.Contains<StanceInit>())
-				stance = init.Get<StanceInit, UnitStance>();
-			else
-				stance = self.Owner.IsBot || !self.Owner.Playable ? info.InitialStanceAI : info.InitialStance;
+			stance = init.GetValue<StanceInit, UnitStance>(info, self.Owner.IsBot || !self.Owner.Playable ? info.InitialStanceAI : info.InitialStance);
 
 			PredictedStance = stance;
 
@@ -206,7 +199,6 @@ namespace OpenRA.Mods.Common.Traits
 					.OrderByDescending(ati => ati.Info.Priority).ToArray()
 					.Where(Exts.IsTraitEnabled).Select(atp => atp.Info);
 
-			conditionManager = self.TraitOrDefault<ConditionManager>();
 			disableAutoTarget = self.TraitsImplementing<IDisableAutoTarget>().ToArray();
 			notifyStanceChanged = self.TraitsImplementing<INotifyStanceChanged>().ToArray();
 			ApplyStanceCondition(self);
@@ -460,6 +452,6 @@ namespace OpenRA.Mods.Common.Traits
 
 		public StanceInit() { }
 		public StanceInit(UnitStance init) { value = init; }
-		public UnitStance Value(World world) { return value; }
+		public UnitStance Value { get { return value; } }
 	}
 }

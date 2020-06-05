@@ -20,12 +20,12 @@ using OpenRA.Traits;
 namespace OpenRA.Mods.Common.Traits
 {
 	[Desc("Required for the map editor to work. Attach this to the world actor.")]
-	public class EditorActorLayerInfo : ITraitInfo
+	public class EditorActorLayerInfo : TraitInfo
 	{
 		[Desc("Size of partition bins (world pixels)")]
 		public readonly int BinSize = 250;
 
-		public object Create(ActorInitializer init) { return new EditorActorLayer(init.Self, this); }
+		public override object Create(ActorInitializer init) { return new EditorActorLayer(init.Self, this); }
 	}
 
 	public class EditorActorLayer : IWorldLoaded, ITickRender, IRender, IRadarSignature, ICreatePlayers, IRenderAnnotations
@@ -118,8 +118,7 @@ namespace OpenRA.Mods.Common.Traits
 
 		public EditorActorPreview Add(string id, ActorReference reference, bool initialSetup = false)
 		{
-			var owner = Players.Players[reference.InitDict.Get<OwnerInit>().PlayerName];
-
+			var owner = Players.Players[reference.InitDict.Get<OwnerInit>().InternalName];
 			var preview = new EditorActorPreview(worldRenderer, id, reference, owner);
 
 			Add(preview, initialSetup);

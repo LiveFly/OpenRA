@@ -13,28 +13,24 @@ using System.Collections.Generic;
 
 namespace OpenRA.Mods.Common.UpdateRules.Rules
 {
-	public class RenameAttackMoveConditions : UpdateRule
+	class SpawnActorPowerDefaultEffect : UpdateRule
 	{
-		public override string Name { get { return "Rename AttackMove *ScanConditions"; } }
+		public override string Name { get { return "Set SpawnActorPower EffectSequence to it's previous default value."; } }
 		public override string Description
 		{
 			get
 			{
-				return "AttackMove's AttackMoveScanCondition and AssaultMoveScanCondition\n" +
-					"now remain active while attacking, and are have been renamed to\n" +
-					"AttackMoveCondition and AssaultMoveCondition to reflect this.\n";
+				return "The 'EffectSequence' of 'SpawnActorPower' is unset by default.";
 			}
 		}
 
 		public override IEnumerable<string> UpdateActorNode(ModData modData, MiniYamlNode actorNode)
 		{
-			foreach (var at in actorNode.ChildrenMatching("AttackMove"))
+			foreach (var spawnActorPower in actorNode.ChildrenMatching("SpawnActorPower"))
 			{
-				foreach (var node in at.ChildrenMatching("AttackMoveScanCondition"))
-					node.RenameKey("AttackMoveCondition");
-
-				foreach (var node in at.ChildrenMatching("AssaultMoveScanCondition"))
-					node.RenameKey("AssaultMoveCondition");
+				var effectNode = spawnActorPower.LastChildMatching("EffectSequence");
+				if (effectNode == null)
+					spawnActorPower.AddNode("EffectSequence", "idle");
 			}
 
 			yield break;

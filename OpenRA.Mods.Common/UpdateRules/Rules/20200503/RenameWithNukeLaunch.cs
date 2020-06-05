@@ -13,26 +13,21 @@ using System.Collections.Generic;
 
 namespace OpenRA.Mods.Common.UpdateRules.Rules
 {
-	public class RemovePlaceBuildingPalettes : UpdateRule
+	class RenameWithNukeLaunch : UpdateRule
 	{
-		public override string Name { get { return "Remove Palette and LineBuildSegmentPalette from PlaceBuilding"; } }
+		public override string Name { get { return "Renamed WithNukeLaunchAnimation and Overlay"; } }
 		public override string Description
 		{
 			get
 			{
-				return "The Palette and LineBuildSegmentPalette fields have been moved from PlaceBuilding,\n" +
-					"to the *PlaceBuildingPreview traits.";
+				return "`WithNukeLaunchAnimation` has been renamed to `WithSupportPowerActivationAnimation` and `WithNukeLaunchOverlay` to `WithSupportPowerActivationOverlay`.";
 			}
 		}
 
 		public override IEnumerable<string> UpdateActorNode(ModData modData, MiniYamlNode actorNode)
 		{
-			// Repairable isn't conditional or otherwise supports multiple traits, so LastChildMatching should be fine.
-			foreach (var placeBuilding in actorNode.ChildrenMatching("PlaceBuilding"))
-			{
-				placeBuilding.RemoveNodes("Palette");
-				placeBuilding.RemoveNodes("LineBuildSegmentPalette");
-			}
+			actorNode.RenameChildrenMatching("WithNukeLaunchAnimation", "WithSupportPowerActivationAnimation", true);
+			actorNode.RenameChildrenMatching("WithNukeLaunchOverlay", "WithSupportPowerActivationOverlay", true);
 
 			yield break;
 		}
